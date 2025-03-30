@@ -25,23 +25,6 @@ except FileNotFoundError:
     st.error("Default dataset not found. Please upload a CSV file to proceed.")
     df = pd.DataFrame()  # Initialize an empty DataFrame
 
-# Fallback to dummy dataset if no valid data loaded
-if df.empty:
-    st.warning("No valid data loaded. Using dummy dataset.")
-    df = pd.DataFrame(
-        {
-            "job_title": [
-                "Data Scientist",
-                "Data Analyst",
-                "Software Engineer",
-                "Data Scientist",
-            ],
-            "location": ["New York", "San Francisco", "New York", "Chicago"],
-            "salary_in_usd": [120000, 110000, 115000, 100000],
-            "employment_type": ["Full Time", "Contract", "Full Time", "Part Time"],
-        }
-    )
-
 # Dynamic filter values (if dataset available)
 if not df.empty and "salary_in_usd" in df.columns:
     salary_min = int(df["salary_in_usd"].min())
@@ -96,8 +79,8 @@ if missing_columns:
         f"The dataset is missing the following required columns: {', '.join(missing_columns)}. "
         "Please upload a valid dataset."
     )
-    df = pd.DataFrame()  # Initialize an empty DataFrame
-    filtered_df = pd.DataFrame()  # Initialize an empty DataFrame for filtered data
+    # Continue with the unfiltered data so that some visuals are shown
+    filtered_df = df
 else:
     # Apply filters to the DataFrame
     filtered_df = df[
@@ -105,6 +88,9 @@ else:
         & df["location"].isin(selected_locations)
         & df["salary_in_usd"].between(salary_range[0], salary_range[1])
     ]
+    if filtered_df.empty:
+        st.info("No data with the selected filters. Showing overall dataset instead.")
+        filtered_df = df
 
 # Summary KPIs
 st.sidebar.header("📈 Summary KPIs")

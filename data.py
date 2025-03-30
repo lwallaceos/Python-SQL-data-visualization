@@ -7,13 +7,27 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
         return df
     # Standardize column names to lower case and strip whitespace
     df.columns = df.columns.str.lower().str.strip()
-    # Check for missing required columns
+
+    # Enhanced mapping: define alternate candidates for each required column
+    mapping_candidates = {
+        "job_title": ["job title", "title", "position", "job"],
+        "location": ["job location", "location", "city", "area", "region", "state"],
+        "salary_in_usd": ["salary", "salary usd", "compensation", "salary_in_usd"],
+    }
+    for required_col, alternatives in mapping_candidates.items():
+        if required_col not in df.columns:
+            for candidate in alternatives:
+                if candidate in df.columns:
+                    df = df.rename(columns={candidate: required_col})
+                    break
+
+    # Check for missing required columns after mapping
     required = ["job_title", "location", "salary_in_usd"]
     missing = set(required) - set(df.columns)
     if missing:
-        # Log error and return an empty DataFrame if required columns are missing
         print(f"Missing required columns: {', '.join(missing)}")
         return pd.DataFrame()
+
     # Handle missing values: Drop rows missing required columns
     df = df.dropna(subset=required)
     # Convert salary to numeric in case of improper types
