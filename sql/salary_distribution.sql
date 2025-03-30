@@ -1,0 +1,2 @@
+SELECT salary
+FROM jobs;
